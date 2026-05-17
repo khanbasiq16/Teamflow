@@ -1,0 +1,11 @@
+# Dependency directories
+backend/node_modules/
+frontend/node_modules/
+
+# Environment variables
+backend/.env
+frontend/.env
+
+# Optional: Catch-all just in case you add more folders later
+**/node_modules/
+**/.env
