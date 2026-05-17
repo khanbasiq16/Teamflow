@@ -1,36 +1,32 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const path = require("path");
+const cors = require("cors");
 require("dotenv").config();
 
-// Load Next.js from frontend's node_modules (no separate install needed)
-const next = require(path.join(__dirname, "../frontend/node_modules/next"));
+const app = express();
 
-const dev = process.env.NODE_ENV !== "production";
-const nextApp = next({ dev, dir: path.join(__dirname, "../frontend") });
-const handle = nextApp.getRequestHandler();
+app.use(cors({ origin: process.env.FRONTEND_URL || "*" }));
+app.use(express.json());
 
-nextApp.prepare().then(() => {
-  const app = express();
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/projects", require("./routes/projects"));
+app.use("/api/tasks", require("./routes/tasks"));
+app.use("/api/invite", require("./routes/invite"));
 
-  app.use(express.json());
+let isConnected = false;
 
-  // API Routes
-  app.use("/api/auth", require("./routes/auth"));
-  app.use("/api/projects", require("./routes/projects"));
-  app.use("/api/tasks", require("./routes/tasks"));
-  app.use("/api/invite", require("./routes/invite"));
+async function connectDB() {
+  if (isConnected) return;
+  await mongoose.connect(process.env.MONGO_URI);
+  isConnected = true;
+  console.log("✅ MongoDB Connected");
+}
 
-  // Next.js frontend — handles all non-API requests
-  app.all("*", (req, res) => handle(req, res));
+connectDB().catch((err) => console.error("❌ DB Error:", err));
 
-  mongoose
-    .connect(process.env.MONGO_URI)
-    .then(() => {
-      console.log("✅ MongoDB Connected");
-      app.listen(process.env.PORT || 5000, () =>
-        console.log(`🚀 Server + Frontend running on http://localhost:${process.env.PORT || 5000}`)
-      );
-    })
-    .catch((err) => console.error("❌ DB Error:", err));
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+}
+
+module.exports = app;
