@@ -1,6 +1,5 @@
 // frontend/lib/api.js
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-// On Vercel: set NEXT_PUBLIC_API_URL=/_/backend/api in environment variables
 
 const getToken = () => {
   if (typeof window !== "undefined") return localStorage.getItem("token");
